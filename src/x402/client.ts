@@ -12,9 +12,9 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import { ethers } from "ethers";
 import type { X402PaymentRequired, X402PaymentHeader, X402Response } from "./types.js";
-import { payMerchant } from "../tools/payMerchant.js";
 import { getWallet } from "../blockchain/wallet.js";
 import { CONTRACTS, USDT_DECIMALS } from "../blockchain/config.js";
+import { ERC20_ABI } from "../blockchain/abis.js";
 
 export interface FetchWithPaymentOptions extends AxiosRequestConfig {
   maxAutoPayUSDT?: number; // Refuse to auto-pay above this amount (default: 5 USDT)
@@ -68,14 +68,20 @@ export async function fetchWithPayment<T = unknown>(
 
   console.log(`[x402] 💳 Auto-paying ${amountUSDT} USDT to ${paymentReq.payTo} for: ${paymentReq.description}`);
 
-  // --- Execute payment on-chain ---
-  const payResult = await payMerchant(paymentReq.payTo, amountUSDT);
-
-  if (!payResult.success) {
-    return { paid: false, error: `Payment failed: ${payResult.error}`, paymentRequired: paymentReq };
+  // --- Execute payment on-chain (direct USDT transfer — no merchant registry required) ---
+  // x402 payments go to any service/API, not only registered merchants.
+  let txHash: string;
+  try {
+    const usdt = new ethers.Contract(CONTRACTS.mockUSDT, ERC20_ABI, wallet);
+    const amount = ethers.parseUnits(amountUSDT, USDT_DECIMALS);
+    const tx = await usdt.transfer(paymentReq.payTo, amount);
+    const receipt = await tx.wait();
+    txHash = receipt.hash;
+  } catch (err) {
+    return { paid: false, error: `Payment failed: ${(err as Error).message}`, paymentRequired: paymentReq };
   }
 
-  console.log(`[x402] ✅ Payment confirmed: ${payResult.txHash}`);
+  console.log(`[x402] ✅ Payment confirmed: ${txHash}`);
 
   // --- Build payment proof header ---
   const now = Math.floor(Date.now() / 1000);
@@ -83,7 +89,7 @@ export async function fetchWithPayment<T = unknown>(
     scheme: "exact",
     network: "evm",
     payload: {
-      signature: payResult.txHash!,
+      signature: txHash,
       authorization: {
         from: wallet.address,
         to: paymentReq.payTo,
@@ -102,7 +108,7 @@ export async function fetchWithPayment<T = unknown>(
     headers: {
       ...(axiosOptions.headers ?? {}),
       "X-Payment": Buffer.from(JSON.stringify(paymentHeader)).toString("base64"),
-      "X-Payment-TxHash": payResult.txHash,
+      "X-Payment-TxHash": txHash,
     },
     validateStatus: () => true,
   });
