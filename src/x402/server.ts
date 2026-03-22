@@ -13,7 +13,7 @@ import { Request, Response, NextFunction } from "express";
 import { ethers } from "ethers";
 import { getProvider } from "../blockchain/wallet.js";
 import { CONTRACTS, USDT_DECIMALS } from "../blockchain/config.js";
-import { PAYMENT_PROCESSOR_ABI } from "../blockchain/abis.js";
+import { PAYMENT_PROCESSOR_ABI, ERC20_ABI } from "../blockchain/abis.js";
 import type { X402PaymentRequired, X402PaymentHeader } from "./types.js";
 
 export interface X402MiddlewareOptions {
@@ -86,36 +86,43 @@ export function requirePayment(opts: X402MiddlewareOptions) {
         return;
       }
 
-      // Parse PaymentSent event from PaymentProcessor
-      const processor = new ethers.Contract(
-        CONTRACTS.paymentProcessor,
-        PAYMENT_PROCESSOR_ABI,
-        provider
-      );
+      // Validate payment: accept PaymentSent (PaymentProcessor) OR Transfer (direct ERC20)
+      const processor = new ethers.Contract(CONTRACTS.paymentProcessor, PAYMENT_PROCESSOR_ABI, provider);
+      const usdtContract = new ethers.Contract(CONTRACTS.mockUSDT, ERC20_ABI, provider);
+      const required = ethers.parseUnits(opts.priceUSDT, USDT_DECIMALS);
 
       let paymentValid = false;
       for (const log of receipt.logs) {
+        // Check PaymentSent from PaymentProcessor (merchant payments)
         try {
           const parsed = processor.interface.parseLog({ topics: log.topics as string[], data: log.data });
           if (
             parsed?.name === "PaymentSent" &&
-            (parsed.args.to as string).toLowerCase() === opts.payTo.toLowerCase()
+            (parsed.args.to as string).toLowerCase() === opts.payTo.toLowerCase() &&
+            (parsed.args.amount as bigint) >= required
           ) {
-            const paidAmount = parsed.args.amount as bigint;
-            const required = ethers.parseUnits(opts.priceUSDT, USDT_DECIMALS);
-            if (paidAmount >= required) {
-              paymentValid = true;
-              break;
-            }
+            paymentValid = true;
+            break;
           }
-        } catch {
-          // Not a PaymentSent log, skip
-        }
+        } catch { /* not a PaymentSent log */ }
+
+        // Check Transfer from ERC20 (direct x402 payments)
+        try {
+          const parsed = usdtContract.interface.parseLog({ topics: log.topics as string[], data: log.data });
+          if (
+            parsed?.name === "Transfer" &&
+            (parsed.args.to as string).toLowerCase() === opts.payTo.toLowerCase() &&
+            (parsed.args.value as bigint) >= required
+          ) {
+            paymentValid = true;
+            break;
+          }
+        } catch { /* not a Transfer log */ }
       }
 
       if (!paymentValid) {
         res.status(402).json({
-          error: `No valid PaymentSent event found to ${opts.payTo} for at least ${opts.priceUSDT} USDT`,
+          error: `No valid payment found to ${opts.payTo} for at least ${opts.priceUSDT} USDT`,
         });
         return;
       }
