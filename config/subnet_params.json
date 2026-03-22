@@ -1,0 +1,41 @@
+{
+  "subnet": {
+    "name": "ArepaSubnet",
+    "chainId": 432100,
+    "networkName": "ArepaNet",
+    "symbol": "AREPA",
+    "rpcUrl": "TBD_after_deploy",
+    "explorerUrl": "TBD_after_deploy"
+  },
+  "tokenomics": {
+    "gasToken": "AREPA",
+    "gasTokenNote": "Token nativo de la cadena. Usuarios necesitan AREPA para pagar gas.",
+    "paymentToken": "USDT",
+    "paymentTokenNote": "Todos los pagos P2P se realizan en USDT. La UI convierte Bs -> USDT.",
+    "protocolFee": {
+      "basisPoints": 3,
+      "percentage": "0.03%",
+      "humanReadable": "0.30 por cada 1000 Bs",
+      "token": "USDT",
+      "note": "Cobrado por PaymentProcessor en USDT, enviado a FeeDistributor"
+    }
+  },
+  "feeDistribution": {
+    "validators": 30,
+    "merchantStakers": 30,
+    "prizePool": 40,
+    "unit": "percent"
+  },
+  "validator": {
+    "minimumStake": "2000000000000000000000",
+    "minimumStakeNote": "2000 AVAX en mainnet; en Fuji testnet el minimo es 1 AVAX",
+    "stakingDurationDays": 364,
+    "stakingDurationNote": "Maximo posible en Fuji Testnet (~364 dias). En mainnet hasta 1 ano.",
+    "count": 1,
+    "countNote": "1 validador para MVP. Escalar en Fase 5."
+  },
+  "initialAllocation": {
+    "deployerBalance": "100000000000000000000000000",
+    "deployerBalanceNote": "100 millones de AREPA para el deployer (cubrir gas inicial de usuarios)"
+  }
+}

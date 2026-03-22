@@ -1,0 +1,10 @@
+{
+  "transactions": [
+    {
+      "rpc": "http://127.0.0.1:9650/ext/bc/24KtPXNgmHT2vVUPK1rx72ykjKwHBdfGrQr5bwJxmuaEBm5Fpx/rpc"
+    },
+    {
+      "rpc": "http://127.0.0.1:9650/ext/bc/24KtPXNgmHT2vVUPK1rx72ykjKwHBdfGrQr5bwJxmuaEBm5Fpx/rpc"
+    }
+  ]
+}
