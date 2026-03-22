@@ -79,9 +79,9 @@ export async function getMarketPrices(spreadThresholdPct = 3): Promise<MarketPri
 
   let arepaHubRate: number;
   try {
-    const rawRate = await hub.currentRate();
-    // currentRate() returns BCV/VES * 1e6 precision — normalize
-    arepaHubRate = Number(ethers.formatUnits(rawRate, 6));
+    const priceCents = await hub.sellPriceCents();
+    // sellPriceCents() returns centavos de Bs por USDT — divide by 100 to get Bs/USDT
+    arepaHubRate = Number(priceCents) / 100;
   } catch {
     // ArepaHub not deployed or L1 not running — use reference rate
     arepaHubRate = 37.5; // 1 USDT = 37.5 VES (BCV rate + 2% margin)
@@ -106,7 +106,7 @@ export async function getHubLiquidity(): Promise<{ totalUSDT: string; canOperate
   const hub = new ethers.Contract(CONTRACTS.arepaHub, AREPA_HUB_ABI, wallet);
 
   try {
-    const total = await hub.getTotalLiquidity();
+    const total = await hub.treasuryBalance();
     const totalUSDT = ethers.formatUnits(total, USDT_DECIMALS);
     return { totalUSDT, canOperate: Number(totalUSDT) > 10 };
   } catch {
@@ -129,7 +129,7 @@ export async function injectLiquidity(amountUSDT: string): Promise<{ txHash: str
     const approveTx = await usdt.approve(CONTRACTS.arepaHub, amount);
     await approveTx.wait();
 
-    const injectTx = await hub.supplyLiquidity(amount);
+    const injectTx = await hub.inject(amount);
     const receipt = await injectTx.wait();
 
     return { txHash: receipt.hash };

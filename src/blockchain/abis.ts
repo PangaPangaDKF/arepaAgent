@@ -39,14 +39,16 @@ export const RAFFLE_ABI = [
 ] as const;
 
 export const AREPA_HUB_ABI = [
-  "function getTotalLiquidity() view returns (uint256)",
-  "function getMerchantInfo(address merchant) view returns (uint256 supplied, uint256 earned, uint256 withdrawn, uint256 dailyLimit)",
-  "function supplyLiquidity(uint256 amount) external",
-  "function buyUSDT(uint256 usdtAmount) external",
-  "function sellUSDT(uint256 usdtAmount) external",
-  "function currentRate() view returns (uint256)", // BCV rate + margin
-  "event LiquiditySupplied(address indexed supplier, uint256 amount)",
-  "event USDTBought(address indexed buyer, uint256 usdtAmount, uint256 arepaAmount)",
+  "function inject(uint256 amount) external",
+  "function treasuryBalance() view returns (uint256)",
+  "function sellPriceCents() view returns (uint256)",
+  "function sellToHub(uint256 _usdtAmount) external",
+  "function authorizeMerchant(address _merchant, bool _status) external",
+  "function supplyMerchant(address _merchant, uint256 _usdtAmount) external",
+  "function maxWithdrawable(address _merchant) view returns (uint256)",
+  "function merchants(address) view returns (uint256 supplied, uint256 earned, uint256 withdrawn, uint256 dayStart, uint256 dayVolume, bool authorized)",
+  "event Injected(uint256 amount)",
+  "event MerchantSupplied(address indexed merchant, uint256 usdtAmount, uint256 priceCents)",
 ] as const;
 
 export const OTC_MARKET_ABI = [
