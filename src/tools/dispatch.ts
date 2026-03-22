@@ -39,7 +39,8 @@ export async function processToolCall(
       }
 
       case "get_market_prices": {
-        const result = await getMarketPrices(toolInput.spread_threshold_pct as number | undefined);
+        const pct = toolInput.spread_threshold_pct;
+        const result = await getMarketPrices(pct !== undefined ? parseFloat(pct as string) : undefined);
         return JSON.stringify(result, null, 2);
       }
 
@@ -49,9 +50,10 @@ export async function processToolCall(
       }
 
       case "execute_arbitrage": {
+        const pct2 = toolInput.spread_threshold_pct;
         const result = await executeArbitrage(
           toolInput.max_capital_usdt as string | undefined,
-          toolInput.spread_threshold_pct as number | undefined
+          pct2 !== undefined ? parseFloat(pct2 as string) : undefined
         );
         return JSON.stringify(result, null, 2);
       }

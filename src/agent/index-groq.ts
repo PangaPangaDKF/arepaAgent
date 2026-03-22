@@ -133,8 +133,12 @@ async function main() {
 
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
   let history: ChatCompletionMessageParam[] = [];
+  let closed = false;
+
+  rl.on("close", () => { closed = true; });
 
   const ask = () => {
+    if (closed) return;
     rl.question("You: ", async (input) => {
       const trimmed = input.trim();
       if (!trimmed || trimmed.toLowerCase() === "exit") {

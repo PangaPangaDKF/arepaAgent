@@ -68,7 +68,7 @@ export const AGENT_TOOLS: Anthropic.Tool[] = [
       type: "object" as const,
       properties: {
         spread_threshold_pct: {
-          type: "number",
+          type: "string",
           description: "Minimum spread % to consider profitable. Default: 3",
         },
       },
@@ -95,7 +95,7 @@ export const AGENT_TOOLS: Anthropic.Tool[] = [
           description: "Maximum USDT to deploy in the arbitrage. Default: 50",
         },
         spread_threshold_pct: {
-          type: "number",
+          type: "string",
           description: "Minimum spread % before executing. Default: 3",
         },
       },
