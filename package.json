@@ -1,0 +1,28 @@
+{
+  "name": "arepa-agent",
+  "version": "0.1.0",
+  "description": "Autonomous x402 payment agent for the ArepaPay ecosystem on Avalanche Fuji",
+  "type": "module",
+  "main": "dist/agent/index.js",
+  "scripts": {
+    "dev": "tsx watch src/agent/index.ts",
+    "demo": "tsx src/demo/server.ts",
+    "build": "tsc",
+    "start": "node dist/agent/index.js",
+    "start:demo": "node dist/demo/server.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.37.0",
+    "ethers": "^6.13.0",
+    "express": "^4.19.0",
+    "dotenv": "^16.4.5",
+    "axios": "^1.7.0",
+    "viem": "^2.21.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.0"
+  }
+}
