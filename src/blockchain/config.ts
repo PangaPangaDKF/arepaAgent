@@ -63,13 +63,13 @@ export const MERCHANTS = [
     id: "botellones",
     name: "Botellones El Mono",
     category: "Agua 22L • Delivery",
-    address: "0xc79D59463c8Ce68c70De0af83cD5B6c1D0e7d621",
+    address: "0xc79d59463C8ce68C70de0aF83CD5B6c1d0e7D621",
   },
   {
     id: "perros",
     name: "Perros Juancho",
     category: "Comida rapida",
-    address: "0xeB484FaA19c87AC4a4CC3cA54BA1af92ED1ffD8A",
+    address: "0xeB484faa19c87AC4A4cc3cA54bA1af92ed1fFD8A",
   },
   {
     id: "bodega",

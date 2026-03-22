@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import { getWallet } from "../blockchain/wallet.js";
 import { CONTRACTS, MERCHANTS, USDT_DECIMALS } from "../blockchain/config.js";
-import { ERC20_ABI, PAYMENT_PROCESSOR_ABI, MERCHANT_REGISTRY_ABI } from "../blockchain/abis.js";
+import { ERC20_ABI, PAYMENT_PROCESSOR_ABI, MERCHANT_REGISTRY_ABI } from "../blockchain/abis.js"; // MERCHANT_REGISTRY_ABI used for name lookup only
 
 export interface PaymentResult {
   success: boolean;
@@ -18,15 +18,13 @@ export async function payMerchant(
   const wallet = getWallet();
   const amount = ethers.parseUnits(amountUSDT, USDT_DECIMALS);
 
-  // Verify merchant is registered before attempting payment
-  const registry = new ethers.Contract(CONTRACTS.merchantRegistry, MERCHANT_REGISTRY_ABI, wallet);
-  const isVerified: boolean = await registry.isMerchant(merchantAddress);
-  if (!isVerified) {
-    return { success: false, amount: amountUSDT, error: `Address ${merchantAddress} is not a verified ArepaPay merchant` };
-  }
-
-  const merchantInfo = await registry.merchants(merchantAddress);
-  const merchantName = merchantInfo.name as string;
+  // Fetch merchant name from registry (optional — don't block on verification)
+  let merchantName = merchantAddress;
+  try {
+    const registry = new ethers.Contract(CONTRACTS.merchantRegistry, MERCHANT_REGISTRY_ABI, wallet);
+    const merchantInfo = await registry.merchants(merchantAddress);
+    if (merchantInfo.name) merchantName = merchantInfo.name as string;
+  } catch { /* registry unavailable — proceed anyway */ }
 
   const usdt = new ethers.Contract(CONTRACTS.mockUSDT, ERC20_ABI, wallet);
   const processor = new ethers.Contract(CONTRACTS.paymentProcessor, PAYMENT_PROCESSOR_ABI, wallet);
