@@ -196,5 +196,4 @@ RevenueDistributor
 - [x] WDK-compatible wallet (BIP-44 seed phrase)
 - [ ] MikroTik event listener para InternetVoucher (captive portal real)
 - [ ] Oracle BCV on-chain como endpoint x402 real
-- [ ] Deploy en Fuji testnet para acceso público de jueces
 - [ ] CLI flags: `arepa-agent --monitor` (modo headless continuo)
