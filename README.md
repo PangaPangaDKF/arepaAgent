@@ -1,30 +1,8 @@
 # ArepaAgent
 
-Venezuela tiene un problema de infraestructura financiera: las tasas de cambio varían por hora, los comercios pequeños no tienen acceso a sistemas de pago digitales confiables, y el acceso a internet depende de operadores que no tienen ningún incentivo para modernizarse. ArepaPay L1 es una subnet de Avalanche construida para atacar ese problema desde la base — contratos propios, token de gas propio (AREPA), y reglas del ecosistema definidas on-chain.
+ArepaAgent es un servicio autónomo que corre en segundo plano dentro del ecosistema ArepaPay L1. Los usuarios no lo ven ni lo configuran — simplemente está ahí, reduciendo la fricción de las transacciones entre comerciantes y el protocolo.
 
-ArepaAgent es el componente autónomo de ese ecosistema. Un agente que puede pagar, arbitrar y activar servicios por su cuenta, sin que nadie tenga que firmar cada transacción.
-
----
-
-## El protocolo x402
-
-El núcleo del agente está construido sobre x402 — una extensión del protocolo HTTP donde un servidor responde `402 Payment Required` en lugar de `401 Unauthorized`. El cliente recibe las instrucciones de pago en el cuerpo de la respuesta (a qué dirección, cuánto, en qué token), ejecuta la transacción on-chain, y reintenta la petición con el hash de la transacción como prueba.
-
-El servidor valida el hash consultando el receipt directamente en la blockchain — no hay intermediarios, no hay sesiones, no hay estado compartido. Si el pago está en el bloque, el recurso se entrega.
-
-Esto permite que cualquier API cobre por llamada sin cuentas, sin subscripciones, sin tarjetas. El agente lo maneja automáticamente.
-
----
-
-## Qué hace en la práctica
-
-Cuando le dices al agente `paga 5 a la panaderia`, ejecuta dos transacciones en secuencia: primero autoriza al `PaymentProcessor` a gastar USDT, luego llama a `payMerchant()`. El contrato transfiere los fondos, mintea un `RewardTicket` (entrada al raffle mensual) y acredita 30 minutos de WiFi en el `InternetVoucher` — todo en la misma transacción.
-
-Cuando le dices `fetch http://localhost:3001/api/bcv-rate`, el agente hace la petición, recibe el 402, paga 0.1 USDT directamente a la wallet del servidor, y reintenta. El servidor verifica el `Transfer` event en el receipt y responde con la tasa.
-
-Cuando le dices `arbitrage`, consulta la tasa interna del `ArepaHub` y la compara con el precio en tiempo real de Binance P2P. Si el spread supera el umbral, ejecuta el ciclo y reinyecta la ganancia al pool de liquidez.
-
-El agente entiende lenguaje natural (via Claude o Groq/Llama) o acepta comandos directos si no tienes API key.
+Usa x402 para manejar pagos automáticamente, arbitra entre la liquidez interna del protocolo y el mercado externo, y administra el flujo de USDT entre comerciantes y los contratos de ArepaPay.
 
 ---
 
@@ -110,11 +88,6 @@ Chain ID 13370 — gas token: AREPA
 
 Comercios registrados en `MerchantRegistry`: `panaderia`, `botellones`, `perros`, `bodega`.
 
----
-
-## Fees y flujo de valor
-
-El `PaymentProcessor` cobra 0.03% por transacción y lo acumula en el `RevenueDistributor`. Cuando se ejecuta `distribute()`, el contrato reparte: 40% al pool del raffle, 30% al pool de crédito para comerciantes, 25% al `SavingsVault` como yield para los depositantes, y 5% a reserva. La idea es que el volumen de pagos financie directamente los incentivos del ecosistema — rifas, crédito y rendimiento — sin depender de ninguna entidad central.
 
 ---
 
