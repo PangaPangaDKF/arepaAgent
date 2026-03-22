@@ -8,7 +8,7 @@
 export interface X402PaymentRequired {
   scheme: "exact";
   network: string;          // e.g. "evm"
-  maxAmountRequired: string; // USDT amount in wei (18 decimals)
+  maxAmountRequired: string; // USDT amount (6 decimals, real USDT standard)
   resource: string;          // URL being accessed
   description: string;
   mimeType: string;

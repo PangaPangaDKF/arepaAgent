@@ -14,7 +14,7 @@ import { ethers } from "ethers";
 import type { X402PaymentRequired, X402PaymentHeader, X402Response } from "./types.js";
 import { payMerchant } from "../tools/payMerchant.js";
 import { getWallet } from "../blockchain/wallet.js";
-import { CONTRACTS } from "../blockchain/config.js";
+import { CONTRACTS, USDT_DECIMALS } from "../blockchain/config.js";
 
 export interface FetchWithPaymentOptions extends AxiosRequestConfig {
   maxAutoPayUSDT?: number; // Refuse to auto-pay above this amount (default: 5 USDT)
@@ -46,7 +46,7 @@ export async function fetchWithPayment<T = unknown>(
     return { paid: false, error: "Invalid 402 response: missing payTo or maxAmountRequired", paymentRequired: paymentReq };
   }
 
-  const amountUSDT = ethers.formatUnits(paymentReq.maxAmountRequired, 18);
+  const amountUSDT = ethers.formatUnits(paymentReq.maxAmountRequired, USDT_DECIMALS);
   const amountNum = parseFloat(amountUSDT);
 
   if (amountNum > maxAutoPayUSDT) {

@@ -2,7 +2,7 @@ import { ethers } from "ethers";
 import { NETWORK } from "./config.js";
 
 let _provider: ethers.JsonRpcProvider | null = null;
-let _wallet: ethers.Wallet | null = null;
+let _wallet: ethers.Wallet | ethers.HDNodeWallet | null = null;
 
 export function getProvider(): ethers.JsonRpcProvider {
   if (!_provider) {
@@ -11,11 +11,25 @@ export function getProvider(): ethers.JsonRpcProvider {
   return _provider;
 }
 
-export function getWallet(): ethers.Wallet {
+/**
+ * Returns the agent wallet.
+ * Priority: WDK_SEED (BIP-39 mnemonic, WDK-compatible) > PRIVATE_KEY (raw hex)
+ *
+ * WDK_SEED uses standard BIP-44 derivation (m/44'/60'/0'/0/0) — the same path
+ * used by @tetherto/wdk-wallet-evm and all EVM-compatible HD wallets.
+ */
+export function getWallet(): ethers.Wallet | ethers.HDNodeWallet {
   if (!_wallet) {
+    const seed = process.env.WDK_SEED;
     const privateKey = process.env.PRIVATE_KEY;
-    if (!privateKey) throw new Error("PRIVATE_KEY not set in .env");
-    _wallet = new ethers.Wallet(privateKey, getProvider());
+
+    if (seed) {
+      _wallet = ethers.HDNodeWallet.fromPhrase(seed).connect(getProvider());
+    } else if (privateKey) {
+      _wallet = new ethers.Wallet(privateKey, getProvider());
+    } else {
+      throw new Error("Set WDK_SEED (12/24-word mnemonic) or PRIVATE_KEY in .env");
+    }
   }
   return _wallet;
 }

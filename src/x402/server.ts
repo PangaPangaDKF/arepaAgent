@@ -12,7 +12,7 @@
 import { Request, Response, NextFunction } from "express";
 import { ethers } from "ethers";
 import { getProvider } from "../blockchain/wallet.js";
-import { CONTRACTS } from "../blockchain/config.js";
+import { CONTRACTS, USDT_DECIMALS } from "../blockchain/config.js";
 import { PAYMENT_PROCESSOR_ABI } from "../blockchain/abis.js";
 import type { X402PaymentRequired, X402PaymentHeader } from "./types.js";
 
@@ -42,7 +42,7 @@ export function requirePayment(opts: X402MiddlewareOptions) {
       const paymentRequired: X402PaymentRequired = {
         scheme: "exact",
         network: "evm",
-        maxAmountRequired: ethers.parseUnits(opts.priceUSDT, 18).toString(),
+        maxAmountRequired: ethers.parseUnits(opts.priceUSDT, USDT_DECIMALS).toString(),
         resource: `${req.protocol}://${req.get("host")}${req.originalUrl}`,
         description: opts.description,
         mimeType: opts.mimeType ?? "application/json",
@@ -102,7 +102,7 @@ export function requirePayment(opts: X402MiddlewareOptions) {
             (parsed.args.to as string).toLowerCase() === opts.payTo.toLowerCase()
           ) {
             const paidAmount = parsed.args.amount as bigint;
-            const required = ethers.parseUnits(opts.priceUSDT, 18);
+            const required = ethers.parseUnits(opts.priceUSDT, USDT_DECIMALS);
             if (paidAmount >= required) {
               paymentValid = true;
               break;

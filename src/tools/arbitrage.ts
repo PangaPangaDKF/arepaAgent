@@ -32,9 +32,46 @@ export interface ArbitrageResult {
 }
 
 /**
- * Fetch current rates — ArepaHub internal vs external market.
- * In production: external rate from Binance P2P API or BCV official.
- * For demo: uses a simulated external rate with random spread.
+ * Fetch current USDT/VES rate from Binance P2P public API.
+ * No API key required — uses the public c2c search endpoint.
+ * Falls back to BCV reference rate if the request fails.
+ */
+async function getBinanceP2PRate(): Promise<number> {
+  try {
+    const { default: axios } = await import("axios");
+    const response = await axios.post(
+      "https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search",
+      {
+        asset: "USDT",
+        fiat: "VES",
+        merchantCheck: false,
+        page: 1,
+        payTypes: [],
+        publisherType: null,
+        rows: 5,
+        tradeType: "BUY",
+      },
+      {
+        headers: { "Content-Type": "application/json" },
+        timeout: 5000,
+      }
+    );
+    const ads = response.data?.data as Array<{ adv: { price: string } }> | undefined;
+    if (ads && ads.length > 0) {
+      const prices = ads.map((ad) => parseFloat(ad.adv.price));
+      // Median of top 5 BUY offers
+      prices.sort((a, b) => a - b);
+      return prices[Math.floor(prices.length / 2)];
+    }
+  } catch {
+    // Silently fall through to fallback
+  }
+  return 36.50; // BCV reference fallback
+}
+
+/**
+ * Fetch current rates — ArepaHub internal vs Binance P2P market.
+ * External rate pulled live from Binance P2P USDT/VES public endpoint.
  */
 export async function getMarketPrices(spreadThresholdPct = 3): Promise<MarketPrices> {
   const wallet = getWallet();
@@ -46,16 +83,11 @@ export async function getMarketPrices(spreadThresholdPct = 3): Promise<MarketPri
     // currentRate() returns BCV/VES * 1e6 precision — normalize
     arepaHubRate = Number(ethers.formatUnits(rawRate, 6));
   } catch {
-    // ArepaHub not deployed or L1 not running — use simulated rate
+    // ArepaHub not deployed or L1 not running — use reference rate
     arepaHubRate = 37.5; // 1 USDT = 37.5 VES (BCV rate + 2% margin)
   }
 
-  // Simulated external market (Binance P2P / LocalBitcoins)
-  // In production: fetch from real API
-  const baseExternal = 36.50; // BCV official rate
-  const randomVariation = (Math.random() - 0.5) * 2; // ±1 VES variation
-  const externalRate = baseExternal + randomVariation;
-
+  const externalRate = await getBinanceP2PRate();
   const spread = ((arepaHubRate - externalRate) / externalRate) * 100;
 
   return {
