@@ -104,7 +104,7 @@ async function runAgent(userMessage: string, history: Message[]): Promise<Messag
 async function main() {
   console.log("┌─────────────────────────────────────────┐");
   console.log("│  🫓  ArepaAgent — x402 Payment Agent     │");
-  console.log("│     Avalanche Fuji Testnet               │");
+  console.log("│     ArepaPay L1 — Chain ID 13370         │");
   console.log("└─────────────────────────────────────────┘");
   console.log('\nType your request (e.g. "check my balance") or "exit" to quit.\n');
 
@@ -119,7 +119,11 @@ async function main() {
         rl.close();
         return;
       }
-      history = await runAgent(trimmed, history);
+      try {
+        history = await runAgent(trimmed, history);
+      } catch (err) {
+        console.error(`\n❌ Error: ${(err as Error).message}\n`);
+      }
       ask();
     });
   };

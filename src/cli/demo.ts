@@ -139,7 +139,11 @@ async function main() {
   const ask = () => {
     if (closed) return;
     rl.question("arepa> ", async (input) => {
-      await handleCommand(input);
+      try {
+        await handleCommand(input);
+      } catch (err) {
+        console.error(`\n❌ Error: ${(err as Error).message}\n`);
+      }
       ask();
     });
   };

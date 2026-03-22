@@ -146,7 +146,11 @@ async function main() {
         rl.close();
         return;
       }
-      history = await runAgent(trimmed, history);
+      try {
+        history = await runAgent(trimmed, history);
+      } catch (err) {
+        console.error(`\n❌ Error: ${(err as Error).message}\n`);
+      }
       ask();
     });
   };

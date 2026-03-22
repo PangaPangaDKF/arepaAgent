@@ -5,8 +5,8 @@
   "type": "module",
   "main": "dist/agent/index.js",
   "scripts": {
-    "dev": "tsx watch src/agent/index.ts",
-    "dev:groq": "tsx watch src/agent/index-groq.ts",
+    "dev": "tsx src/agent/index.ts",
+    "dev:groq": "tsx src/agent/index-groq.ts",
     "cli": "tsx src/cli/demo.ts",
     "demo": "tsx src/demo/server.ts",
     "build": "tsc",

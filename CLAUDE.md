@@ -5,8 +5,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-npm run dev        # Start interactive agent REPL (tsx watch)
-npm run demo       # Start x402 demo server on PORT (default 3000)
+npm run dev        # Claude agent (requires ANTHROPIC_API_KEY)
+npm run dev:groq   # Groq/Llama agent, free (requires GROQ_API_KEY)
+npm run cli        # Direct CLI — no AI, no API key needed
+npm run demo       # x402 demo server (PORT from .env, default 3001)
 npm run build      # Compile TypeScript to dist/
 npm start          # Run compiled agent (after build)
 ```

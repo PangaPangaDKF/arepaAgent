@@ -4,7 +4,7 @@
  * Flow:
  *   1. Make HTTP request to resource
  *   2. If 402 → parse X402PaymentRequired from response body
- *   3. Pay on-chain via PaymentProcessor.payMerchant()
+ *   3. Pay on-chain via direct ERC20.transfer() (no merchant registry required)
  *   4. Retry request with X-Payment header (tx hash as proof)
  *   5. Return data if 200
  */
